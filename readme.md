@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Data Management Flask API
 
 A robust Flask-based API for data management with support for Excel/CSV file uploads, database operations, and data analysis. The application provides a comprehensive solution for handling structured data with dual database support and automated data processing capabilities.
@@ -393,4 +392,3 @@ If you encounter any issues or have questions:
 
 
 **Note**: Remember to update your database credentials and remove any hardcoded passwords before deploying to production.
->>>>>>> 6adf2bc77c8f01440c608d35a712c75f9c4d6411
