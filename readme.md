@@ -33,8 +33,8 @@ A robust Flask-based API for data management with support for Excel/CSV file upl
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repository-url>
-cd <repository-name>
+git clone https://github.com/Benisonjac/MultiFile_Updaton_on_Postgres
+cd MultiFile_Updation_on_Postgres
 ```
 
 ### 2. Install Dependencies
@@ -192,5 +192,6 @@ If you encounter any issues or have questions:
 - Monthly aggregation functionality
 
 ---
+
 
 **Note**: Remember to update your database credentials and remove any hardcoded passwords before deploying to production.
