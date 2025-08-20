@@ -267,30 +267,6 @@ The application will start on `http://localhost:3000`
 | `/api/list-tables` | GET | List all available database tables |
 | `/api/delete-table` | DELETE | Delete a specific table |
 
-### Example Usage
-
-#### Upload Excel File
-```bash
-curl -X POST -F "file=@data.xlsx" http://localhost:3000/api/upload-excel
-```
-
-#### Save Data
-```bash
-curl -X POST -H "Content-Type: application/json" \
-  -d '{"tableName": "sales_data", "data": [{"date": "2023-01-01", "amount": 100}]}' \
-  http://localhost:3000/api/save-data
-```
-
-#### Load Data
-```bash
-curl "http://localhost:3000/api/load-data?tableName=sales_data"
-```
-
-#### Monthly Averages
-```bash
-curl "http://localhost:3000/api/monthly-averages?tableName=sales_data&dateColumn=date&valueColumn=amount"
-```
-
 ## 🔧 Configuration
 
 ### Environment Variables
@@ -368,4 +344,5 @@ If you encounter any issues or have questions:
 
 
 **Note**: Remember to update your database credentials and remove any hardcoded passwords before deploying to production.
+
 
