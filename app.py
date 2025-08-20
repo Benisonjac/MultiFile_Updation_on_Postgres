@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import os
 import re
 import json
@@ -552,4 +551,3 @@ def static_proxy(path):
 
 if __name__ == '__main__':
     app.run(port=int(os.getenv("PORT", 3000)), debug=True)
->>>>>>> 6adf2bc77c8f01440c608d35a712c75f9c4d6411
