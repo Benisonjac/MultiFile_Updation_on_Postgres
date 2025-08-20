@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Monthly Data Organizer</title>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script> -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border: 3px dashed #dee2e6;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateY(-2px);
+        }
+
+        .upload-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .upload-section:hover::before {
+            opacity: 1;
+        }
+
+        .file-input {
+            position: relative;
+            z-index: 2;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-label::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .file-label:hover::before {
+            left: 100%;
+        }
+
+        .file-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .upload-text {
+            margin-top: 15px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .date-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-selector label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .date-selector select {
+            padding: 10px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .date-selector select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .data-display {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .month-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f3f4;
+            transition: background-color 0.3s ease;
+        }
+
+        .data-table tr:hover td {
+            background-color: #f8f9ff;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #dc3545;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        .database-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .database-section h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .tables-list {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .tables-list h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .tables-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tables-list li {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tables-list li:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .date-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>CSV Monthly Data Organizer</h1>
+
+        <div class="upload-section">
+            <div class="file-input">
+                <input type="file" id="csvFile" accept=".csv, .xlsx, .xls" multiple>
+<label for="csvFile" class="file-label">📁 Choose CSV or Excel Files</label>
+
+            </div>
+            <div class="upload-text">
+                Select one or more CSV files to organize by month. Files should contain a date column.
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>Processing CSV files...</div>
+        </div>
+
+        <div id="messages"></div>
+
+        <div id="dataControls" style="display: none;">
+            <div class="date-selector">
+                <label for="dateColumn">Date Column:</label>
+                <select id="dateColumn">
+                    <option value="">Select date column...</option>
+                </select>
+
+                <label for="monthFilter">Filter by Month:</label>
+                <select id="monthFilter">
+                    <option value="">All months</option>
+                </select>
+
+                <label for="yearFilter">Filter by Year:</label>
+                <select id="yearFilter">
+                    <option value="">All years</option>
+                </select>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="processData()">📊 Organize Data</button>
+                <button class="btn btn-secondary" onclick="exportData()">💾 Export Current View</button>
+                <button class="btn btn-secondary" onclick="clearData()">🗑️ Clear All</button>
+            </div>
+        </div>
+
+        <div id="databaseControls" style="display: none;">
+            <div class="data-display">
+                <div class="month-header">💾 Database Operations</div>
+
+                <div class="database-section">
+                    <h3>Save to Database</h3>
+                    <div class="form-group">
+                        <label for="tableName">Table Name:</label>
+                        <input type="text" id="tableName" placeholder="Enter table name (e.g., monthly_sales)"
+                            class="form-input">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveToDatabase()">💾 Save to Database</button>
+                </div>
+
+                <div class="database-section">
+                    <h3>Load from Database</h3>
+                    <div class="form-group">
+                        <label for="loadTableName">Table Name:</label>
+                        <input type="text" id="loadTableName" placeholder="Enter table name to load" class="form-input">
+                    </div>
+                    <button class="btn btn-primary" onclick="loadFromDatabase()">📥 Load from Database</button>
+                    <button class="btn btn-secondary" onclick="listTables()">📋 List Tables</button>
+                </div>
+
+                <div id="tablesList" class="tables-list"></div>
+            </div>
+        </div>
+
+        <div id="dataDisplay"></div>
+    </div>
+
+    <script>
+        let csvData = [];
+        let processedData = {};
+        let currentDateColumn = '';
+
+        const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+
+        document.getElementById('csvFile').addEventListener('change', handleExcelSelect);
+
+        function handleExcelSelect(event) {
+            const files = event.target.files;
+            if (files.length === 0) return;
+
+            showLoading(true);
+            csvData = [];
+
+            let filesProcessed = 0;
+
+            Array.from(files).forEach(file => {
+                let formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/api/upload-excel', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(res => res.json())
+                    .then(results => {
+                        if (results.error) {
+                            showMessage('Error parsing ' + file.name + ': ' + results.error, 'error');
+                        } else {
+                            csvData.push({
+                                filename: results.filename,
+                                data: [results.headers, ...results.data.map(obj => results.headers.map(h => obj[h]))],
+                                headers: results.headers
+                            });
+                        }
+                        filesProcessed++;
+                        if (filesProcessed === files.length) {
+                            showLoading(false);
+                            if (csvData.length > 0) {
+                                setupDateColumnSelector();
+                                showMessage(`Successfully loaded ${csvData.length} Excel file(s)`, 'success');
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        showMessage('Network error: ' + err.message, 'error');
+                        showLoading(false);
+                    });
+            });
+        }
+
+
+        function setupDateColumnSelector() {
+            const dateColumnSelect = document.getElementById('dateColumn');
+            dateColumnSelect.innerHTML = '<option value="">Select date column...</option>';
+
+            if (csvData.length > 0) {
+                const headers = csvData[0].headers;
+                headers.forEach((header, index) => {
+                    if (header && typeof header === 'string') {
+                        const cleanHeader = header.trim();
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = cleanHeader;
+                        dateColumnSelect.appendChild(option);
+                    }
+                });
+            }
+
+            document.getElementById('dataControls').style.display = 'block';
+        }
+
+        function processData() {
+            const dateColumnIndex = parseInt(document.getElementById('dateColumn').value);
+            if (isNaN(dateColumnIndex)) {
+                showMessage('Please select a date column', 'error');
+                return;
+            }
+
+            currentDateColumn = dateColumnIndex;
+            processedData = {};
+
+            csvData.forEach(fileData => {
+                const headers = fileData.headers;
+                const rows = fileData.data.slice(1); // Skip header row
+
+                rows.forEach(row => {
+                    if (row && row[dateColumnIndex]) {
+                        const dateValue = row[dateColumnIndex];
+                        const parsedDate = parseDate(dateValue);
+
+                        if (parsedDate) {
+                            const monthKey = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}`;
+
+                            if (!processedData[monthKey]) {
+                                processedData[monthKey] = {
+                                    month: monthNames[parsedDate.getMonth()],
+                                    year: parsedDate.getFullYear(),
+                                    data: []
+                                };
+                            }
+
+                            const rowObject = {};
+                            headers.forEach((header, index) => {
+                                if (header && typeof header === 'string') {
+                                    rowObject[header.trim()] = row[index] || '';
+                                }
+                            });
+
+                            processedData[monthKey].data.push(rowObject);
+                        }
+                    }
+                });
+            });
+
+            setupFilters();
+            displayData();
+            document.getElementById('databaseControls').style.display = 'block';
+        }
+
+        function parseDate(dateValue) {
+            if (!dateValue) return null;
+
+            // Try different date formats
+            const formats = [
+                /^\d{4}-\d{2}-\d{2}$/, // YYYY-MM-DD
+                /^\d{2}\/\d{2}\/\d{4}$/, // MM/DD/YYYY
+                /^\d{2}-\d{2}-\d{4}$/, // MM-DD-YYYY
+                /^\d{4}\/\d{2}\/\d{2}$/, // YYYY/MM/DD
+            ];
+
+            const date = new Date(dateValue);
+            if (!isNaN(date.getTime())) {
+                return date;
+            }
+
+            return null;
+        }
+
+        function setupFilters() {
+            const monthFilter = document.getElementById('monthFilter');
+            const yearFilter = document.getElementById('yearFilter');
+
+            monthFilter.innerHTML = '<option value="">All months</option>';
+            yearFilter.innerHTML = '<option value="">All years</option>';
+
+            const months = new Set();
+            const years = new Set();
+
+            Object.keys(processedData).forEach(key => {
+                const monthData = processedData[key];
+                months.add(monthData.month);
+                years.add(monthData.year);
+            });
+
+            Array.from(months).sort().forEach(month => {
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = month;
+                monthFilter.appendChild(option);
+            });
+
+            Array.from(years).sort().forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearFilter.appendChild(option);
+            });
+
+            monthFilter.addEventListener('change', displayData);
+            yearFilter.addEventListener('change', displayData);
+        }
+
+        function displayData() {
+            const monthFilter = document.getElementById('monthFilter').value;
+            const yearFilter = document.getElementById('yearFilter').value;
+            const displayElement = document.getElementById('dataDisplay');
+
+            if (Object.keys(processedData).length === 0) {
+                displayElement.innerHTML = '<div class="no-data">No data to display. Please upload CSV files and process them.</div>';
+                return;
+            }
+
+            let html = '';
+            let totalRecords = 0;
+            let displayedMonths = 0;
+
+            Object.keys(processedData).sort().forEach(key => {
+                const monthData = processedData[key];
+
+                if (monthFilter && monthData.month !== monthFilter) return;
+                if (yearFilter && monthData.year.toString() !== yearFilter) return;
+
+                displayedMonths++;
+                totalRecords += monthData.data.length;
+
+                html += `
+                    <div class="data-display">
+                        <div class="month-header">
+                            ${monthData.month} ${monthData.year} (${monthData.data.length} records)
+                        </div>
+                        ${generateTable(monthData.data)}
+                    </div>
+                `;
+            });
+
+            if (html === '') {
+                html = '<div class="no-data">No data matches the selected filters.</div>';
+            } else {
+                // Add statistics
+                const statsHtml = `
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-number">${displayedMonths}</div>
+                            <div class="stat-label">Months</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${totalRecords}</div>
+                            <div class="stat-label">Total Records</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${Math.round(totalRecords / displayedMonths) || 0}</div>
+                            <div class="stat-label">Avg per Month</div>
+                        </div>
+                    </div>
+                `;
+                html = statsHtml + html;
+            }
+
+            displayElement.innerHTML = html;
+        }
+
+        function generateTable(data) {
+            if (data.length === 0) {
+                return '<div class="no-data">No data for this month</div>';
+            }
+
+            const headers = Object.keys(data[0]);
+
+            let html = '<table class="data-table"><thead><tr>';
+            headers.forEach(header => {
+                html += `<th>${header}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            data.forEach(row => {
+                html += '<tr>';
+                headers.forEach(header => {
+                    html += `<td>${row[header] || ''}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            return html;
+        }
+
+        async function saveToDatabase() {
+            if (Object.keys(processedData).length === 0) {
+                showMessage('No data to save', 'error');
+                return;
+            }
+
+            const tableName = document.getElementById('tableName').value.trim();
+            if (!tableName) {
+                showMessage('Please enter a table name', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                // Prepare data for database
+                let dataToSave = [];
+
+                Object.keys(processedData).sort().forEach(key => {
+                    const monthData = processedData[key];
+
+                    monthData.data.forEach(row => {
+                        dataToSave.push({
+                            ...row,
+                            month: monthData.month,
+                            year: monthData.year,
+                            month_year: key,
+                            created_at: new Date().toISOString()
+                        });
+                    });
+                });
+
+                const response = await fetch('/api/save-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        tableName: tableName,
+                        data: dataToSave,
+                        headers: Object.keys(dataToSave[0])
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage(`Successfully saved ${result.recordCount} records to ${tableName} table`, 'success');
+                } else {
+                    showMessage(`Error saving to database: ${result.error}`, 'error');
+                }
+
+            } catch (error) {
+                showMessage(`Network error: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function loadFromDatabase() {
+            const tableName = document.getElementById('loadTableName').value.trim();
+            if (!tableName) {
+                showMessage('Please enter a table name to load from', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`/api/load-data?tableName=${encodeURIComponent(tableName)}`);
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Convert loaded data back to processedData format
+                    processedData = {};
+
+                    result.data.forEach(row => {
+                        const monthKey = row.month_year;
+                        if (!processedData[monthKey]) {
+                            processedData[monthKey] = {
+                                month: row.month,
+                                year: row.year,
+                                data: []
+                            };
+                        }
+
+                        // Remove our added fields
+                        const cleanRow = { ...row };
+                        delete cleanRow.month;
+                        delete cleanRow.year;
+                        delete cleanRow.month_year;
+                        delete cleanRow.created_at;
+                        delete cleanRow.id;
+
+                        processedData[monthKey].data.push(cleanRow);
+                    });
+
+                    setupFilters();
+                    displayData();
+                    document.getElementById('dataControls').style.display = 'block';
+                    showMessage(`Successfully loaded ${result.data.length} records from ${tableName} table`, 'success');
+
+                } else {
+                    showMessage(`Error loading from database: ${result.error}`, 'error');
+                }
+
+            } catch (error) {
+                showMessage(`Network error: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function listTables() {
+            showLoading(true);
+
+            try {
+                const response = await fetch('/api/list-tables');
+                const result = await response.json();
+
+                if (response.ok) {
+                    const tablesList = document.getElementById('tablesList');
+                    if (result.tables.length > 0) {
+                        tablesList.innerHTML = '<h4>Available Tables:</h4><ul>' +
+                            result.tables.map(table => `<li>${table}</li>`).join('') + '</ul>';
+                    } else {
+                        tablesList.innerHTML = '<p>No tables found in database</p>';
+                    }
+                } else {
+                    showMessage(`Error listing tables: ${result.error}`, 'error');
+                }
+
+            } catch (error) {
+                showMessage(`Network error: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function exportData() {
+            if (Object.keys(processedData).length === 0) {
+                showMessage('No data to export', 'error');
+                return;
+            }
+
+            const monthFilter = document.getElementById('monthFilter').value;
+            const yearFilter = document.getElementById('yearFilter').value;
+
+            let exportData = [];
+
+            Object.keys(processedData).sort().forEach(key => {
+                const monthData = processedData[key];
+
+                if (monthFilter && monthData.month !== monthFilter) return;
+                if (yearFilter && monthData.year.toString() !== yearFilter) return;
+
+                monthData.data.forEach(row => {
+                    exportData.push({
+                        ...row,
+                        Month: monthData.month,
+                        Year: monthData.year
+                    });
+                });
+            });
+
+            const csv = Papa.unparse(exportData);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `monthly_data_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showMessage('Data exported successfully', 'success');
+        }
+
+        function clearData() {
+            csvData = [];
+            processedData = {};
+            currentDateColumn = '';
+            document.getElementById('csvFile').value = '';
+            document.getElementById('dataControls').style.display = 'none';
+            document.getElementById('dataDisplay').innerHTML = '';
+            document.getElementById('messages').innerHTML = '';
+            showMessage('All data cleared', 'success');
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showMessage(message, type) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            messagesDiv.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+
+</html>
