@@ -1,0 +1,33 @@
+# .env.example
+# Copy this file to .env and replace placeholder values with your actual configuration
+
+
+# ----------------------
+# Server Configuration
+# ----------------------
+PORT=3000
+
+
+# ----------------------
+# Database Configuration
+# ----------------------
+# Supported values: "postgresql" or "mysql"
+DATABASE_TYPE=postgresql
+
+# Database Connection Details
+DB_HOST=localhost
+DB_USER=your_username
+DB_PASSWORD=your_password
+DB_NAME=your_database_name
+
+# PostgreSQL default port: 5432
+# MySQL default port: 3306
+DB_PORT=5432
+
+
+# ----------------------
+# Optional: Connection Pool Settings
+# ----------------------
+DB_CONNECTION_LIMIT=10         # Max number of connections in pool
+DB_IDLE_TIMEOUT=30000          # Milliseconds a connection can be idle before being released
+DB_CONNECTION_TIMEOUT=60000    # Milliseconds to wait for connection before timing out
